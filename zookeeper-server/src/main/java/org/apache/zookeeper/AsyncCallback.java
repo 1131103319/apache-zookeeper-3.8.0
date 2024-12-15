@@ -18,10 +18,11 @@
 
 package org.apache.zookeeper;
 
-import java.util.List;
 import org.apache.yetus.audience.InterfaceAudience;
 import org.apache.zookeeper.data.ACL;
 import org.apache.zookeeper.data.Stat;
+
+import java.util.List;
 
 /**
  * Interface definitions of asynchronous callbacks.
@@ -259,6 +260,12 @@ public interface AsyncCallback {
          *
          * @see ZooKeeper#create(String, byte[], List, CreateMode, AsyncCallback.StringCallback, Object)
          */
+        //todo rc，响应状态码，可参考org.apache.zookeeper.KeeperException.Code。
+        // 常见状态码：响应成功：OK(0)，其他状态码就都是异常：ConnectionLoss(-4)连接断开、NodeExists(-110)节点已存在、
+        // SessionExpired(-112)会话过期等。
+        // path，API调用时传入的节点路径。
+        // ctx，API调用时传入的上下文对象。
+        // name，实际创建的节点名，比如顺序节点，会在原参数path基础上带个有序编号后缀。
         void processResult(int rc, String path, Object ctx, String name);
 
     }

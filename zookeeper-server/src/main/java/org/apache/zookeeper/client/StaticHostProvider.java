@@ -18,18 +18,14 @@
 
 package org.apache.zookeeper.client;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
 import org.apache.yetus.audience.InterfaceAudience;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
+import java.util.*;
 
 /**
  * Most simple HostProvider, resolves on every next() call.
@@ -85,7 +81,8 @@ public final class StaticHostProvider implements HostProvider {
         init(serverAddresses, System.currentTimeMillis() ^ this.hashCode(), new Resolver() {
             @Override
             public InetAddress[] getAllByName(String name) throws UnknownHostException {
-                return InetAddress.getAllByName(name); // 根据主机名获取IP地址
+                //todo 根据主机名获取IP地址
+                return InetAddress.getAllByName(name);
             }
         });
     }
@@ -125,12 +122,14 @@ public final class StaticHostProvider implements HostProvider {
     }
 
     private void init(Collection<InetSocketAddress> serverAddresses, long randomnessSeed, Resolver resolver) {
+        //todo randomnessSeed=System.currentTimeMillis() ^ this.hashCode()
         this.sourceOfRandomness = new Random(randomnessSeed);
         this.resolver = resolver;
         if (serverAddresses.isEmpty()) {
             throw new IllegalArgumentException("A HostProvider may not be empty!");
         }
-        this.serverAddresses = shuffle(serverAddresses); // shuffle地址，负载均衡，避免所有客户端都打到第一台服务器上
+        //todo  shuffle地址，负载均衡，避免所有客户端都打到第一台服务器上
+        this.serverAddresses = shuffle(serverAddresses);
         currentIndex = -1;
         lastIndex = -1;
     }
@@ -153,6 +152,7 @@ public final class StaticHostProvider implements HostProvider {
     private List<InetSocketAddress> shuffle(Collection<InetSocketAddress> serverAddresses) {
         List<InetSocketAddress> tmpList = new ArrayList<>(serverAddresses.size());
         tmpList.addAll(serverAddresses);
+        //todo 根据随机种子打乱
         Collections.shuffle(tmpList, sourceOfRandomness);
         return tmpList;
     }
@@ -346,17 +346,22 @@ public final class StaticHostProvider implements HostProvider {
                 reconfigMode = false;
                 needToSleep = (spinDelay > 0);
             }
+            //todo         // currentIndex自增，如果等于服务地址列表长度，就重置为0
             ++currentIndex;
             if (currentIndex == serverAddresses.size()) {
                 currentIndex = 0;
             }
             addr = serverAddresses.get(currentIndex);
+            //todo // 两个游标currentIndex、lastIndex
+            //        // currentIndex 当前选择的位置，lastIndex上次选择的位置
+            //        // lastIndex 什么时候设置呢？会话建立成功之后调用 onConnected，将currentIndex赋值给lastIndex
             needToSleep = needToSleep || (currentIndex == lastIndex && spinDelay > 0);
             if (lastIndex == -1) {
                 // We don't want to sleep on the first ever connect attempt.
                 lastIndex = 0;
             }
         }
+        //todo     // 如果 currentIndex == lastIndex且spinDelay>0，就需要休眠spinDelay时间，
         if (needToSleep) {
             try {
                 Thread.sleep(spinDelay);
@@ -364,7 +369,9 @@ public final class StaticHostProvider implements HostProvider {
                 LOG.warn("Unexpected exception", e);
             }
         }
-
+        //todo // 解析InetSocketAddress，
+        //    // 如果一个主机映射了多个ip地址（InetAddress）
+        //    // 就打乱选择其中一个地址返回
         return resolve(addr);
     }
 

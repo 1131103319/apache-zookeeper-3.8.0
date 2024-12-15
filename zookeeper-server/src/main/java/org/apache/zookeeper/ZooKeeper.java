@@ -571,9 +571,11 @@ public class ZooKeeper implements AutoCloseable {
                 watcher);
 
         this.clientConfig = clientConfig != null ? clientConfig : new ZKClientConfig();
+        //todo 构建hostprovider 默认为statichostprovider 主要用来将服务地址列表打乱，然后构成一个虚拟环，轮询向外提供服务地址
         this.hostProvider = hostProvider;
-        ConnectStringParser connectStringParser = new ConnectStringParser(connectString); // zk集群解析器，解析地址
-
+        //todo // zk集群解析器，解析地址
+        ConnectStringParser connectStringParser = new ConnectStringParser(connectString);
+        //todo cnxn // 创建server连接
         cnxn = createConnection(
                 connectStringParser.getChrootPath(),
                 hostProvider,
@@ -581,8 +583,9 @@ public class ZooKeeper implements AutoCloseable {
                 this.clientConfig,
                 watcher,
                 getClientCnxnSocket(),
-                canBeReadOnly); // 创建server连接
-        cnxn.start(); // 启动连接
+                canBeReadOnly);
+        //todo  启动连接 开启sendthread线程和eventthread线程
+        cnxn.start();
     }
 
     ClientCnxn createConnection(
@@ -1298,6 +1301,7 @@ public class ZooKeeper implements AutoCloseable {
      * @throws InterruptedException                if the transaction is interrupted
      * @throws IllegalArgumentException            if an invalid path is specified
      */
+    //todo 同步创建
     public String create(
             final String path,
             byte[] data,
@@ -1381,12 +1385,23 @@ public class ZooKeeper implements AutoCloseable {
      *
      * @see #create(String, byte[], List, CreateMode)
      */
+    //todo StringCallback用于旧节点类型，Create2Callback用于新拓展的节点类型
+    // 原先节点类型有四种：持久节点（PERSISTENT）、持久顺序节点（PERSISTENT_SEQUENTIAL）、临时节点（EPHEMERAL）、
+    // 临时顺序节点（EPHEMERAL_SEQUENTIAL），后来又在持久节点上拓展了两种新类型：持久带有效期节点（PERSISTENT_WITH_TTL）、
+    // 持久顺序带有效期节点（PERSISTENT_SEQUENTIAL_WITH_TTL）
+    //todo 异步创建
     public void create(
+            //todo 节点路径，切记不支持递归创建
             final String path,
+            //todo 节点值
             byte[] data,
+            //todo 节点的ACL权限策略
             List<ACL> acl,
+            //todo 节点类型，是个枚举类型
             CreateMode createMode,
+            //todo 异步回调函数，可以实现StringCallback或者Create2Callback接口
             StringCallback cb,
+            //todo 异步回调上下文
             Object ctx) {
         final String clientPath = path;
         PathUtils.validatePath(clientPath, createMode.isSequential());
@@ -1433,6 +1448,7 @@ public class ZooKeeper implements AutoCloseable {
             CreateMode createMode,
             Create2Callback cb,
             Object ctx,
+            //todo 持久节点的有效期，单位毫秒，必须大于0
             long ttl) {
         final String clientPath = path;
         PathUtils.validatePath(clientPath, createMode.isSequential());

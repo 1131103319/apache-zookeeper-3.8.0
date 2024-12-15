@@ -28,6 +28,7 @@ public class TestClient {
 // 获取sessionId和sessionPasswd，重新建立连接
         long sessionId = zooKeeper1.getSessionId();
         byte[] sessionPasswd = zooKeeper1.getSessionPasswd();
+        System.out.println(zooKeeper1.whoAmI());
         System.out.println(String.format("zookeeper1-----sessionId=%s;sessionPasswd=%s;", sessionId, sessionPasswd));
         CountDownLatch countDownLatch2 = new CountDownLatch(1);
 
@@ -43,12 +44,13 @@ public class TestClient {
         countDownLatch2.await();
         long sessionId2 = zooKeeper2.getSessionId();
         byte[] sessionPasswd2 = zooKeeper2.getSessionPasswd();
+        System.out.println(zooKeeper2.whoAmI());
         System.out.println(String.format("zookeeper2-----sessionId=%s;sessionPasswd=%s;", sessionId2, sessionPasswd2));
 
-        String data2 = new String(zooKeeper2.getData("/node1", false, new Stat()));
+        String data2 = new String(zooKeeper2.getData("/", false, new Stat()));
         System.out.println(data2);
 
-        String data = new String(zooKeeper1.getData("/node1", false, new Stat()));
+        String data = new String(zooKeeper1.getData("/", false, new Stat()));
         System.out.println(data);
 
     }
